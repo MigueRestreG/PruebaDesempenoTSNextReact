@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  username     String         @unique
+  nombre       String
+  passwordHash String
+  role         String         @default("usuario")
+  createdAt    DateTime       @default(now())
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model Bus {
+  id          String      @id @default(uuid())
+  placa       String      @unique
+  modelo      String
+  capacidad   Int
+  descripcion String?
+  tarifa      Decimal
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  conductor   Conductor?
+
+  @@map("buses")
+}
+
+model Conductor {
+  id        String   @id @default(uuid())
+  nombre    String
+  licencia  String   @unique
+  telefono  String
+  busId     String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  bus       Bus?     @relation(fields: [busId], references: [id], onDelete: SetNull)
+
+  @@map("conductores")
+}
+
+model RefreshToken {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  username  String?
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
