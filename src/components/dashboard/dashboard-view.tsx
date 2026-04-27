@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { StatusBadge } from "@/src/components/ui/status-badge";
-import type { Bus, DriverWithBus } from "@/src/types";
+import type { Bus, DriverWithAsignacion } from "@/src/types";
 
 type DashboardPayload = {
   counters: {
@@ -12,7 +12,7 @@ type DashboardPayload = {
     conductoresAsignados: number;
   };
   buses: Bus[];
-  conductores: DriverWithBus[];
+  conductores: DriverWithAsignacion[];
 };
 
 type DashboardViewProps = {
@@ -95,21 +95,20 @@ export function DashboardView({ nombre, data }: DashboardViewProps) {
         <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-xl font-semibold text-slate-900">
-              Conductores disponibles
+              Conductores
             </h3>
             <StatusBadge
-              value={`${data.counters.conductoresDisponibles}`}
+              value={`${data.conductores.length}`}
               variant="warning"
             />
           </div>
           <div className="space-y-3">
-            {data.conductores.filter((item) => !item.busId).length === 0 ? (
+            {data.conductores.length === 0 ? (
               <p className="text-sm text-slate-500">
-                Todos los conductores tienen bus asignado.
+                No hay conductores registrados.
               </p>
             ) : (
               data.conductores
-                .filter((item) => !item.busId)
                 .slice(0, 6)
                 .map((driver) => (
                   <div
@@ -124,7 +123,11 @@ export function DashboardView({ nombre, data }: DashboardViewProps) {
                         Licencia: {driver.licencia}
                       </p>
                     </div>
-                    <StatusBadge value="Disponible" variant="warning" />
+                    {driver.asignacion?.bus?.placa ? (
+                      <StatusBadge value={`Bus: ${driver.asignacion.bus.placa}`} variant="success" />
+                    ) : (
+                      <StatusBadge value="Sin asignar" variant="warning" />
+                    )}
                   </div>
                 ))
             )}

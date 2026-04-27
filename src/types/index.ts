@@ -18,13 +18,12 @@ export interface Driver {
   nombre: string;
   licencia: string;
   telefono: string;
-  busId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface DriverWithBus extends Driver {
-  bus: { placa: string } | null;
+export interface DriverWithAsignacion extends Driver {
+  asignacion: { bus: { id: string; placa: string } } | null;
 }
 
 export interface User {

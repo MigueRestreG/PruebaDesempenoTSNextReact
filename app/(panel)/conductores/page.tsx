@@ -4,16 +4,12 @@ import { listBuses, listDrivers } from "@/src/lib/repositories";
 
 export default async function ConductoresPage() {
   const user = await requirePageUser();
-  const [driversResult, busesResult] = await Promise.all([
-    listDrivers(),
-    listBuses(),
-  ]);
+  const driversResult = await listDrivers();
 
   return (
     <DriversManager
       role={user.role}
       initialDrivers={driversResult.data}
-      initialBuses={busesResult.data}
     />
   );
 }

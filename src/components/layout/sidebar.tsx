@@ -13,6 +13,7 @@ const menuItems = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/buses", label: "Buses" },
   { href: "/conductores", label: "Conductores" },
+  { href: "/asignaciones", label: "Asignaciones" },
 ];
 
 export function Sidebar({ nombre, role }: SidebarProps) {

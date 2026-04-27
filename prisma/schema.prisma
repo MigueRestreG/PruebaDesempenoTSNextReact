@@ -31,7 +31,7 @@ model Bus {
   isActive    Boolean     @default(true)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-  conductor   Conductor?
+  asignacion  Asignacion?
 
   @@map("buses")
 }
@@ -41,12 +41,23 @@ model Conductor {
   nombre    String
   licencia  String   @unique
   telefono  String
-  busId     String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  bus       Bus?     @relation(fields: [busId], references: [id], onDelete: SetNull)
+  asignacion Asignacion?
 
   @@map("conductores")
+}
+
+model Asignacion {
+  id          String    @id @default(uuid())
+  conductorId String    @unique
+  busId       String    @unique
+  conductor   Conductor @relation(fields: [conductorId], references: [id], onDelete: Cascade)
+  bus         Bus       @relation(fields: [busId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("asignaciones")
 }
 
 model RefreshToken {

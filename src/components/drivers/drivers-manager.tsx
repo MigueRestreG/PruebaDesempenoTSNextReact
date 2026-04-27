@@ -1,29 +1,24 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { StatusBadge } from "@/src/components/ui/status-badge";
-import type { Bus, DriverWithBus, UserRole } from "@/src/types";
+import type { Driver, UserRole } from "@/src/types";
 
 type DriversManagerProps = {
   role: UserRole;
-  initialDrivers: DriverWithBus[];
-  initialBuses: Bus[];
+  initialDrivers: Driver[];
 };
 
 const initialForm = {
   nombre: "",
   licencia: "",
   telefono: "",
-  busId: "",
 };
 
 export function DriversManager({
   role,
   initialDrivers,
-  initialBuses,
 }: DriversManagerProps) {
-  const [items, setItems] = useState<DriverWithBus[]>(initialDrivers);
-  const [buses, setBuses] = useState<Bus[]>(initialBuses);
+  const [items, setItems] = useState<Driver[]>(initialDrivers);
   const [form, setForm] = useState(initialForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,22 +29,14 @@ export function DriversManager({
     setLoading(true);
     setError(null);
     try {
-      const [driversResponse, busesResponse] = await Promise.all([
-        fetch("/api/conductores"),
-        fetch("/api/buses"),
-      ]);
+      const response = await fetch("/api/conductores");
 
-      if (!driversResponse.ok || !busesResponse.ok) {
+      if (!response.ok) {
         throw new Error("No fue posible cargar los datos");
       }
 
-      const driversPayload = (await driversResponse.json()) as {
-        data: DriverWithBus[];
-      };
-      const busesPayload = (await busesResponse.json()) as { data: Bus[] };
-
-      setItems(driversPayload.data);
-      setBuses(busesPayload.data);
+      const payload = (await response.json()) as { data: Driver[] };
+      setItems(payload.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error inesperado");
     } finally {
@@ -57,13 +44,12 @@ export function DriversManager({
     }
   }
 
-  function startEdit(item: DriverWithBus) {
+  function startEdit(item: Driver) {
     setEditingId(item.id);
     setForm({
       nombre: item.nombre,
       licencia: item.licencia,
       telefono: item.telefono,
-      busId: item.busId ? String(item.busId) : "",
     });
   }
 
@@ -78,7 +64,6 @@ export function DriversManager({
 
     const payload = {
       ...form,
-      busId: form.busId ? Number(form.busId) : null,
     };
 
     try {
@@ -87,7 +72,7 @@ export function DriversManager({
         {
           method: editingId ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ ...form }),
         },
       );
 
@@ -169,31 +154,6 @@ export function DriversManager({
             className="rounded-xl border border-slate-300 px-4 py-3"
             required
           />
-          <select
-            value={form.busId}
-            onChange={(event) =>
-              setForm((prev) => ({ ...prev, busId: event.target.value }))
-            }
-            className="rounded-xl border border-slate-300 px-4 py-3"
-          >
-            <option value="">Sin asignar</option>
-            {buses.map((bus) => {
-              const assigned = items.find(
-                (driver) => driver.busId === bus.id && driver.id !== editingId,
-              );
-              return (
-                <option
-                  key={bus.id}
-                  value={bus.id}
-                  disabled={Boolean(assigned)}
-                >
-                  {bus.placa} - {bus.modelo}
-                  {assigned ? " (ocupado)" : ""}
-                </option>
-              );
-            })}
-          </select>
-
           <div className="flex gap-2">
             <button
               className="flex-1 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
@@ -225,7 +185,6 @@ export function DriversManager({
               <th className="px-4 py-3 font-semibold">Nombre</th>
               <th className="px-4 py-3 font-semibold">Licencia</th>
               <th className="px-4 py-3 font-semibold">Telefono</th>
-              <th className="px-4 py-3 font-semibold">Bus asignado</th>
               {!isReadonly ? (
                 <th className="px-4 py-3 font-semibold">Acciones</th>
               ) : null}
@@ -252,13 +211,6 @@ export function DriversManager({
                   </td>
                   <td className="px-4 py-3">{item.licencia}</td>
                   <td className="px-4 py-3">{item.telefono}</td>
-                  <td className="px-4 py-3">
-                    {item.bus?.placa ? (
-                      <StatusBadge value={item.bus.placa} variant="success" />
-                    ) : (
-                      <StatusBadge value="Disponible" variant="warning" />
-                    )}
-                  </td>
                   {!isReadonly ? (
                     <td className="px-4 py-3">
                       <div className="flex gap-2">

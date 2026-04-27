@@ -4,7 +4,6 @@ import { requireUser, isAdmin } from "@/src/lib/session";
 import {
   listDrivers,
   createDriver,
-  busHasAssignedDriver,
 } from "@/src/lib/repositories";
 import { logAudit } from "@/src/lib/audit";
 
@@ -60,21 +59,10 @@ export async function POST(request: Request) {
       );
     }
 
-    if (result.data.busId) {
-      const hasDriver = await busHasAssignedDriver(result.data.busId);
-      if (hasDriver) {
-        return NextResponse.json(
-          { error: "Bus already has an assigned driver" },
-          { status: 409 },
-        );
-      }
-    }
-
     const driver = await createDriver({
       nombre: result.data.nombre,
       licencia: result.data.licencia,
       telefono: result.data.telefono,
-      busId: result.data.busId ?? null,
     });
 
     await logAudit({

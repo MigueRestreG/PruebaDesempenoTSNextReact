@@ -5,7 +5,6 @@ import {
   updateDriver,
   deleteDriver,
   getDriverById,
-  busHasAssignedDriver,
 } from "@/src/lib/repositories";
 import { logAudit } from "@/src/lib/audit";
 
@@ -42,21 +41,10 @@ export async function PUT(
       return NextResponse.json({ error: "Driver not found" }, { status: 404 });
     }
 
-    if (result.data.busId && result.data.busId !== currentDriver.busId) {
-      const hasDriver = await busHasAssignedDriver(result.data.busId);
-      if (hasDriver) {
-        return NextResponse.json(
-          { error: "Bus already has an assigned driver" },
-          { status: 409 },
-        );
-      }
-    }
-
     const updated = await updateDriver(driverId, {
       nombre: result.data.nombre,
       licencia: result.data.licencia,
       telefono: result.data.telefono,
-      busId: result.data.busId ?? null,
     });
 
     await logAudit({

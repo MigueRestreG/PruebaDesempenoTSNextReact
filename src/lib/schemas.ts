@@ -28,7 +28,6 @@ export const driverSchema = z.object({
     .string()
     .min(7, "El telefono debe tener al menos 7 caracteres")
     .max(20),
-  busId: z.string().uuid("ID de bus inválido").nullable().optional(),
 });
 
 export const loginSchema = z.object({

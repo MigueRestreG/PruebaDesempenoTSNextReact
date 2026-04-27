@@ -109,7 +109,7 @@ export async function listDrivers(params?: {
   const [data, total] = await Promise.all([
     prisma.conductor.findMany({
       where,
-      include: { bus: { select: { placa: true } } },
+      include: { asignacion: { include: { bus: { select: { id: true, placa: true } } } } },
       orderBy: { id: "desc" },
       skip,
       take: limit,
@@ -131,7 +131,7 @@ export async function listDrivers(params?: {
 export async function getDriverById(id: string) {
   return prisma.conductor.findUnique({
     where: { id },
-    include: { bus: { select: { placa: true } } },
+    include: { asignacion: { include: { bus: { select: { id: true, placa: true } } } } },
   });
 }
 
@@ -139,11 +139,10 @@ export async function createDriver(input: {
   nombre: string;
   licencia: string;
   telefono: string;
-  busId: string | null;
 }) {
   return prisma.conductor.create({
     data: input,
-    include: { bus: { select: { placa: true } } },
+    include: { asignacion: { include: { bus: { select: { id: true, placa: true } } } } },
   });
 }
 
@@ -153,13 +152,12 @@ export async function updateDriver(
     nombre: string;
     licencia: string;
     telefono: string;
-    busId: string | null;
   },
 ) {
   return prisma.conductor.update({
     where: { id },
     data: input,
-    include: { bus: { select: { placa: true } } },
+    include: { asignacion: { include: { bus: { select: { id: true, placa: true } } } } },
   });
 }
 
@@ -168,7 +166,7 @@ export async function deleteDriver(id: string) {
 }
 
 export async function busHasAssignedDriver(busId: string) {
-  const count = await prisma.conductor.count({ where: { busId } });
+  const count = await prisma.asignacion.count({ where: { busId } });
   return count > 0;
 }
 
@@ -246,8 +244,8 @@ export async function getDashboardCounters() {
     await Promise.all([
       prisma.bus.count({ where: { isActive: true } }),
       prisma.bus.count({ where: { isActive: false } }),
-      prisma.conductor.count({ where: { busId: null } }),
-      prisma.conductor.count({ where: { busId: { not: null } } }),
+      prisma.conductor.count({ where: { asignacion: null } }),
+      prisma.conductor.count({ where: { asignacion: { isNot: null } } }),
     ]);
 
   return {

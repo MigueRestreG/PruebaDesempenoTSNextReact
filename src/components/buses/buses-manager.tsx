@@ -69,14 +69,19 @@ export function BusesManager({ role, initialBuses }: BusesManagerProps) {
         {
           method: editingId ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
+          body: JSON.stringify({
+            ...form,
+            isActive: form.isActive === "true",
+          }),
         },
       );
 
       if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as {
-          error?: string;
-        } | null;
+        const payload = (await response.json().catch(() => null)) as any;
+        if (payload?.details) {
+          const firstError = Object.values(payload.details)[0] as string[];
+          throw new Error(firstError[0]);
+        }
         throw new Error(payload?.error ?? "No se pudo guardar");
       }
 
@@ -163,6 +168,30 @@ export function BusesManager({ role, initialBuses }: BusesManagerProps) {
             className="rounded-xl border border-slate-300 px-4 py-3"
             required
           />
+          <input
+            type="number"
+            placeholder="Tarifa (precio)"
+            value={form.tarifa || ""}
+            onChange={(event) =>
+              setForm((prev) => ({
+                ...prev,
+                tarifa: Number(event.target.value || 0),
+              }))
+            }
+            className="rounded-xl border border-slate-300 px-4 py-3"
+            required
+          />
+          <input
+            placeholder="Descripción (opcional)"
+            value={form.descripcion}
+            onChange={(event) =>
+              setForm((prev) => ({
+                ...prev,
+                descripcion: event.target.value,
+              }))
+            }
+            className="rounded-xl border border-slate-300 px-4 py-3"
+          />
           <select
             value={form.isActive}
             onChange={(event) =>
@@ -208,6 +237,8 @@ export function BusesManager({ role, initialBuses }: BusesManagerProps) {
               <th className="px-4 py-3 font-semibold">Placa</th>
               <th className="px-4 py-3 font-semibold">Modelo</th>
               <th className="px-4 py-3 font-semibold">Capacidad</th>
+              <th className="px-4 py-3 font-semibold">Tarifa</th>
+              <th className="px-4 py-3 font-semibold">Desc.</th>
               <th className="px-4 py-3 font-semibold">Estado</th>
               {!isReadonly ? (
                 <th className="px-4 py-3 font-semibold">Acciones</th>
@@ -217,13 +248,13 @@ export function BusesManager({ role, initialBuses }: BusesManagerProps) {
           <tbody>
             {loading ? (
               <tr>
-                <td className="px-4 py-4 text-slate-500" colSpan={5}>
+                <td className="px-4 py-4 text-slate-500" colSpan={7}>
                   Cargando...
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td className="px-4 py-4 text-slate-500" colSpan={5}>
+                <td className="px-4 py-4 text-slate-500" colSpan={7}>
                   No hay buses registrados.
                 </td>
               </tr>
@@ -235,6 +266,8 @@ export function BusesManager({ role, initialBuses }: BusesManagerProps) {
                   </td>
                   <td className="px-4 py-3">{item.modelo}</td>
                   <td className="px-4 py-3">{item.capacidad}</td>
+                  <td className="px-4 py-3">${item.tarifa}</td>
+                  <td className="px-4 py-3 text-xs text-slate-500 max-w-[150px] truncate" title={item.descripcion || ""}>{item.descripcion || "-"}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${item.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}
