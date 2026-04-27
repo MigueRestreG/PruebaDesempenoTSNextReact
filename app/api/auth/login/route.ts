@@ -19,8 +19,9 @@ import { logAudit } from "@/src/lib/audit";
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
+    
+    // Validacion del cuerpo de la peticion mediante Zod
     const parsed = loginSchema.safeParse(body);
-
     if (!parsed.success) {
       return fail("Credenciales invalidas", 400, parsed.error.flatten());
     }
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
       return fail("Usuario o clave incorrectos", 401);
     }
 
-    // Fire and forget
+    // Limpieza asincrona de tokens expirados en base de datos para no bloquear la peticion
     clearExpiredRefreshTokens().catch(console.error);
 
     const user = {
@@ -50,6 +51,8 @@ export async function POST(request: Request) {
       role: userRecord.role,
     };
 
+    // Generacion de tokens JWT para el manejo de sesiones
+    // accessToken tiene un tiempo de vida corto (ej. 15 min), refreshToken se usa para renovarlo (ej. 7 dias)
     const tokenId = newTokenId();
     const accessToken = await signAccessToken(user);
     const refreshToken = await signRefreshToken(user, tokenId);
@@ -57,6 +60,7 @@ export async function POST(request: Request) {
       Date.now() + 7 * 24 * 60 * 60 * 1000,
     ).toISOString();
 
+    // El refreshToken se guarda en DB para poder invalidarlo si el usuario cierra sesion
     await storeRefreshToken(tokenId, user.id, refreshExpiry);
 
     await logAudit({
@@ -76,6 +80,7 @@ export async function POST(request: Request) {
       { status: 200 },
     );
 
+    // Seteo de cookies httpOnly y secure para evitar accesos via Javascript (prevencion de XSS)
     response.cookies.set(
       ACCESS_TOKEN_COOKIE,
       accessToken,

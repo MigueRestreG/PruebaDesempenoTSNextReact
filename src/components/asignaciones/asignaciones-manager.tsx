@@ -25,6 +25,8 @@ export function AsignacionesManager({ role }: AsignacionesManagerProps) {
   const [loading, setLoading] = useState(false);
   const isReadonly = role === "usuario";
 
+  // Funcion centralizada para cargar todos los datos necesarios
+  // Se ejecutan las 3 promesas en paralelo para mayor rapidez
   async function loadData() {
     setLoading(true);
     setError(null);
@@ -57,6 +59,7 @@ export function AsignacionesManager({ role }: AsignacionesManagerProps) {
     loadData();
   }, []);
 
+  // Envio de datos para crear la relacion 1:1
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!form.busId || !form.conductorId) {
@@ -116,6 +119,7 @@ export function AsignacionesManager({ role }: AsignacionesManagerProps) {
         <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>
       ) : null}
 
+      {/* Control de roles: Si el usuario es de solo lectura, no renderizamos el formulario */}
       {!isReadonly ? (
         <form
           onSubmit={onSubmit}

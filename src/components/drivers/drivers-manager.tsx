@@ -25,6 +25,7 @@ export function DriversManager({
   const [loading, setLoading] = useState(false);
   const isReadonly = role === "usuario";
 
+  // Funcion que recarga los datos desde la API
   async function loadData() {
     setLoading(true);
     setError(null);
@@ -44,6 +45,7 @@ export function DriversManager({
     }
   }
 
+  // Prepara el formulario con los datos del conductor a editar
   function startEdit(item: Driver) {
     setEditingId(item.id);
     setForm({
@@ -58,6 +60,7 @@ export function DriversManager({
     setForm(initialForm);
   }
 
+  // Maneja tanto la creacion (POST) como la edicion (PUT) de un conductor
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);

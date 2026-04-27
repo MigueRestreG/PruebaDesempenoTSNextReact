@@ -11,9 +11,12 @@ const asignacionSchema = z.object({
 
 export async function GET(request: Request) {
   try {
+    // Verificacion de sesion usando el middleware unificado
     const { user, error } = await requireUser(request);
     if (error) return error;
 
+    // Query de asignaciones con cruce de datos (JOIN) hacia Conductor y Bus
+    // Esto es necesario para devolver los nombres y placas al frontend
     const data = await prisma.asignacion.findMany({
       include: {
         conductor: true,
@@ -54,7 +57,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Comprobar si el bus o el conductor ya tienen una asignación (liberarla si la tienen)
+    // Regla de Negocio: Relacion 1 a 1 entre Conductor y Bus
+    // Si el conductor ya tenia un bus, o el bus ya tenia un conductor,
+    // se elimina la asignacion previa antes de crear la nueva (reasignacion automatica).
     await prisma.asignacion.deleteMany({
       where: {
         OR: [

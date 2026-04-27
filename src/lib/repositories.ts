@@ -107,6 +107,8 @@ export async function listDrivers(params?: {
   }
 
   const [data, total] = await Promise.all([
+    // Se usa findMany con paginacion e incluye un left join a Asignacion y Bus
+    // para devolver la informacion completa de asignacion si existe
     prisma.conductor.findMany({
       where,
       include: { asignacion: { include: { bus: { select: { id: true, placa: true } } } } },
@@ -240,6 +242,7 @@ export async function clearExpiredRefreshTokens() {
 // ─── Dashboard ──────────────────────────────────────────
 
 export async function getDashboardCounters() {
+  // Ejecuta consultas concurrentes para obtener contadores del dashboard y optimizar tiempo
   const [busesActivos, busesInactivos, conductoresDisponibles, conductoresAsignados] =
     await Promise.all([
       prisma.bus.count({ where: { isActive: true } }),
